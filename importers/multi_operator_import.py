@@ -370,6 +370,10 @@ def read_sheet(path: Path, fallback_used: bool, conn: sqlite3.Connection, start_
     batch: list[tuple[Any, ...]] = []
     imported = 0
     mapper = mapped_vivo if operator == "VIVO" else mapped_tim
+    # STAGE 0 WP0.8: no conn.commit() calls in this function anymore. import_all() now owns a
+    # single transaction spanning DROP+CREATE+all inserts+import_audit, so that a failure
+    # partway through a multi-file import rolls back everything instead of leaving the sites
+    # table partially repopulated from only some of the source files.
     for raw in rows:
         if not any(value is not None for value in raw):
             continue
@@ -379,27 +383,43 @@ def read_sheet(path: Path, fallback_used: bool, conn: sqlite3.Connection, start_
         batch.append(mapper(row, imported_at, path.name, row_id))
         if len(batch) >= 5000:
             conn.executemany(INSERT_SQL, batch)
-            conn.commit()
             batch.clear()
     if batch:
         conn.executemany(INSERT_SQL, batch)
-        conn.commit()
     workbook.close()
     after_hash = fingerprint(path)
     conn.execute(
         "INSERT INTO import_audit(arquivo_origem,operadora,sheet,linhas_importadas,colunas_mapeadas,campos_ausentes,fallback_usado,sha256_antes,sha256_depois,excel_inalterado,importado_em) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
         (path.name, operator, sheet.title, imported, len(indexes), json.dumps(missing, ensure_ascii=False), 1 if fallback_used else 0, before_hash, after_hash, 1 if before_hash == after_hash else 0, imported_at),
     )
-    conn.commit()
     logging.info("file_imported file=%s operator=%s rows=%d fallback=%s unchanged=%s", path.name, operator, imported, fallback_used, before_hash == after_hash)
     return row_id, {"file": path.name, "operator": operator, "rows": imported, "sha256": before_hash, "unchanged": before_hash == after_hash}
+
+
+# STAGE 0 -- WP0.6 CSV/Excel Formula Injection sanitizer (audit-v4 risk R6, CWE-1236).
+# Mirrors utils/csv.ts on the TypeScript side: any cell whose text starts with a
+# character Excel/Sheets/LibreOffice treats as the start of a formula (=, +, -, @) --
+# or a raw tab/carriage-return -- gets a leading apostrophe so it renders as literal
+# text instead of being evaluated. Known tradeoff: a legitimate negative number like
+# "-5" is also prefixed and displays as text; these exports are reports for humans to
+# read, not live spreadsheets, so this is the standard accepted mitigation.
+_FORMULA_TRIGGER_CHARS = ("=", "+", "-", "@", "\t", "\r")
+
+
+def sanitize_csv_value(value: Any) -> Any:
+    if value is None:
+        return value
+    text = value if isinstance(value, str) else str(value)
+    if text.startswith(_FORMULA_TRIGGER_CHARS):
+        return "'" + text
+    return value
 
 
 def write_csv(path: Path, headers: list[str], rows: Iterable[Iterable[Any]]) -> None:
     with path.open("w", encoding="utf-8-sig", newline="") as stream:
         writer = csv.writer(stream, delimiter=";", quoting=csv.QUOTE_ALL)
         writer.writerow(headers)
-        writer.writerows(rows)
+        writer.writerows([sanitize_csv_value(cell) for cell in row] for row in rows)
 
 
 def export_reports(conn: sqlite3.Connection, export_dir: Path) -> None:
@@ -421,6 +441,39 @@ def export_reports(conn: sqlite3.Connection, export_dir: Path) -> None:
     )
 
 
+# STAGE 0 -- WP0.8 Preserve Derived Tables During Import (audit-v4 risk R4 / backlog B0.9).
+#
+# The previous implementation built an entirely new database file from scratch (CREATE_SQL
+# only defines sites/metadata/import_audit) and then used Path.replace() to atomically swap
+# the whole file in. That whole-file swap discarded every table the running app creates on
+# its own -- site_notes, site_trust_scores, copernicus_scenes, site_satellite_validation,
+# audit_trail, sig_nodes, sig_edges, sig_snapshots, sig_insights, site_validation_history,
+# site_evidence_center -- because they simply did not exist in the freshly-built temp file.
+#
+# The fix: import in place, inside a single SQLite transaction, touching ONLY the three
+# tables this importer owns (sites, metadata, import_audit). SQLite's DDL is transactional,
+# so DROP TABLE + CREATE TABLE + the inserts below either all take effect together at COMMIT,
+# or -- on any exception, or an interrupted process/crash before COMMIT -- are rolled back as
+# a unit and the prior sites/metadata/import_audit content is left exactly as it was. No
+# statement in this function ever references any of the derived tables above, so they are
+# never dropped, truncated, or otherwise touched by a reimport.
+#
+# Per explicit instruction, this rewritten path must be exercised only against a database
+# COPY during validation -- never against the single production leotechscan.db -- see
+# docs/stage-0/04_IMPORT_SAFETY.md for the test procedure and results.
+#
+# IMPORTANT: Connection.executescript() in Python's sqlite3 module implicitly COMMITs any
+# pending transaction before running, and its statements are not subject to the transaction
+# we control below -- using it here would silently defeat the atomicity this rewrite exists
+# to provide. Every DDL statement inside the transaction below therefore goes through this
+# helper (plain conn.execute() per statement) instead of executescript().
+def _exec_statements(conn: sqlite3.Connection, script: str) -> None:
+    for statement in script.split(";"):
+        statement = statement.strip()
+        if statement:
+            conn.execute(statement)
+
+
 def import_all(sources: list[Path], database: Path, log_path: Path, export_dir: Path, fallback_used: bool) -> dict[str, Any]:
     database.parent.mkdir(parents=True, exist_ok=True)
     log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -428,43 +481,65 @@ def import_all(sources: list[Path], database: Path, log_path: Path, export_dir: 
     logging.basicConfig(filename=log_path, level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", encoding="utf-8")
     if fallback_used:
         logging.warning("base_folder_empty_fallback_used files=%s", ",".join(path.name for path in sources))
-    temp = database.with_suffix(".tmp.db")
-    if temp.exists():
-        temp.unlink()
-    conn = sqlite3.connect(temp)
-    conn.executescript(CREATE_SQL)
-    imported_at = datetime.now(timezone.utc).isoformat()
-    row_id = 0
-    summaries = []
-    for source in sources:
-        if source.name.startswith("~$") or source.suffix.lower() != ".xlsx":
-            continue
-        row_id, summary = read_sheet(source, fallback_used, conn, row_id, imported_at)
-        summaries.append(summary)
-    conn.executemany(
-        "INSERT INTO metadata(key,value) VALUES (?,?)",
-        {
-            "schema_version": "2.0-sprint1",
-            "imported_at": imported_at,
-            "source_name": ", ".join(path.name for path in sources),
-            "row_count": str(row_id),
-            "fallback_used": str(fallback_used),
-            "operators": json.dumps({row[0]: row[1] for row in conn.execute("SELECT operadora_origem,COUNT(*) FROM sites GROUP BY operadora_origem")}, ensure_ascii=False),
-        }.items(),
-    )
-    conn.executescript(
-        "CREATE INDEX idx_filters ON sites(estado,municipio,tecnologia,status_normalizado,detentor_infra,tipo_infra,operadora_classificada);"
-        "CREATE INDEX idx_score ON sites(geo_score DESC);"
-        "CREATE INDEX idx_site ON sites(site_id);"
-        "CREATE INDEX idx_unified_site ON sites(site,operadora_origem,uf);"
-    )
-    export_reports(conn, export_dir)
-    conn.commit()
-    conn.execute("PRAGMA optimize")
-    total = conn.execute("SELECT COUNT(*) FROM sites").fetchone()[0]
-    distribution = dict(conn.execute("SELECT operadora_origem,COUNT(*) FROM sites GROUP BY operadora_origem"))
-    conn.close()
-    temp.replace(database)
+    conn = sqlite3.connect(database, timeout=30)
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA busy_timeout=30000")
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        _exec_statements(conn, "DROP TABLE IF EXISTS sites; DROP TABLE IF EXISTS metadata; DROP TABLE IF EXISTS import_audit;")
+        _exec_statements(conn, CREATE_SQL)
+        imported_at = datetime.now(timezone.utc).isoformat()
+        row_id = 0
+        summaries = []
+        for source in sources:
+            if source.name.startswith("~$") or source.suffix.lower() != ".xlsx":
+                continue
+            row_id, summary = read_sheet(source, fallback_used, conn, row_id, imported_at)
+            summaries.append(summary)
+        conn.executemany(
+            "INSERT INTO metadata(key,value) VALUES (?,?)",
+            {
+                "schema_version": "2.0-sprint1",
+                "imported_at": imported_at,
+                "source_name": ", ".join(path.name for path in sources),
+                "row_count": str(row_id),
+                "fallback_used": str(fallback_used),
+                "operators": json.dumps({row[0]: row[1] for row in conn.execute("SELECT operadora_origem,COUNT(*) FROM sites GROUP BY operadora_origem")}, ensure_ascii=False),
+            }.items(),
+        )
+        _exec_statements(
+            conn,
+            "CREATE INDEX idx_filters ON sites(estado,municipio,tecnologia,status_normalizado,detentor_infra,tipo_infra,operadora_classificada);"
+            "CREATE INDEX idx_score ON sites(geo_score DESC);"
+            "CREATE INDEX idx_site ON sites(site_id);"
+            "CREATE INDEX idx_unified_site ON sites(site,operadora_origem,uf);"
+        )
+        total = conn.execute("SELECT COUNT(*) FROM sites").fetchone()[0]
+        if row_id > 0 and total == 0:
+            # Safety net: rows were read from the source sheets but nothing landed in the
+            # table -- something is badly wrong (e.g. a schema mismatch). Refuse to commit an
+            # empty sites table over a previously-populated production database.
+            raise RuntimeError(f"import_all: read {row_id} source rows but sites table has 0 rows after insert; aborting without committing")
+        distribution = dict(conn.execute("SELECT operadora_origem,COUNT(*) FROM sites GROUP BY operadora_origem"))
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        logging.exception("import_failed_rolled_back database=%s", database)
+        raise
+    finally:
+        conn.close()
+    # Derived-table export snapshots (auditoria_importacao.csv etc.) are regenerated on a
+    # fresh read-only connection after commit, so this never runs inside the write transaction.
+    export_conn = sqlite3.connect(f"file:{database}?mode=ro", uri=True)
+    try:
+        export_reports(export_conn, export_dir)
+    finally:
+        export_conn.close()
+    conn = sqlite3.connect(database)
+    try:
+        conn.execute("PRAGMA optimize")
+    finally:
+        conn.close()
     logging.info("import_finished rows=%d database=%s distribution=%s", total, database, json.dumps(distribution, ensure_ascii=False))
     return {"rows": total, "database": str(database), "fallback_used": fallback_used, "sources": summaries, "operators": distribution}
 

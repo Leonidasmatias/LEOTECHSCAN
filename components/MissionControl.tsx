@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import Donut from "./Donut";
 import type { DashboardData, MissionControlData, SiteRow, StrategicMunicipality } from "@/lib/types";
+import { CapabilityBadge, CapabilityNote } from "@/components/CapabilityBadge";
 
 const MapView = dynamic(() => import("./MapView"), { ssr: false, loading: () => <div className="map-loading">Carregando Mission Map...</div> });
 const nf = new Intl.NumberFormat("pt-BR");
@@ -36,7 +37,7 @@ export default function MissionControl({ dashboard, onSelectSite }: { dashboard?
   const vivo = mission?.distributions.operators.find((item) => item.operator === "VIVO");
 
   return <div className="mission-control">
-    <section className="mission-hero panel"><div><p className="eyebrow">SENTINEL-1 V2 · MISSION CONTROL</p><h1>Centro de comando telecom.</h1><p>Leitura executiva da cobertura, risco, oportunidade e performance territorial consolidada em SQLite local.</p></div><div className="mission-status"><span className={mission?.status.database === "ok" ? "ok" : "warn"}>Banco {mission?.status.database || "..."}</span><span className={mission?.status.api === "ok" ? "ok" : "warn"}>APIs {mission?.status.api || "..."}</span><small>{mission?.status.apiMs ?? 0} ms</small></div></section>
+    <section className="mission-hero panel"><div><p className="eyebrow">MISSION CONTROL</p><h1>Centro de comando telecom. <CapabilityBadge capabilityKey="mission_control" /></h1><p>Leitura executiva da cobertura, risco, oportunidade e performance territorial consolidada em SQLite local.</p><CapabilityNote capabilityKey="mission_control" /></div><div className="mission-status"><span className={mission?.status.database === "ok" ? "ok" : "warn"}>Banco {mission?.status.database || "..."}</span><span className={mission?.status.api === "ok" ? "ok" : "warn"}>APIs {mission?.status.api || "..."}</span><small>{mission?.status.apiMs ?? 0} ms</small></div></section>
     {error ? <section className="error">{error}</section> : null}
     <section className="mission-kpis">
       <article className="panel"><span>Total de Sites</span><strong>{nf.format(mission?.kpis.totalSites || 0)}</strong><small>ativos unicos</small></article>

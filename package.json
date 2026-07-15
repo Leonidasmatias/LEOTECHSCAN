@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "import": "python scripts/import_excel.py"
+    "import": "python scripts/import_excel.py",
+    "test": "vitest run"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
@@ -20,6 +21,7 @@
     "@types/node": "^22.15.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "vitest": "^2.1.0"
   }
 }

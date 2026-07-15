@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CapabilityBadge, CapabilityNote } from "@/components/CapabilityBadge";
 
 const nf = new Intl.NumberFormat("pt-BR");
 
@@ -31,7 +32,7 @@ export function SentinelCoreView() {
     setTick((value) => value + 1);
   };
   return <section className="s2b-view">
-    <div className="s2b-hero panel"><div><p className="eyebrow">SENTINEL CORE</p><h2>Sentinel Intelligence Graph</h2><p>Camada central de conhecimento conectando sites, municipios, operadoras, tecnologias, trust, Copernicus e evidencias.</p></div><a href="/api/export?type=sentinel-graph-nodes">Exportar Nos</a></div>
+    <div className="s2b-hero panel"><div><p className="eyebrow">SENTINEL CORE <CapabilityBadge capabilityKey="sentinel_core" /></p><h2>Sentinel Intelligence Graph <CapabilityBadge capabilityKey="intelligence_graph" /></h2><p>Camada central de conhecimento conectando sites, municipios, operadoras, tecnologias, trust, Copernicus e evidencias. Nao tem relacao com o satelite Sentinel-1 — e um grafo de conhecimento interno baseado em regras.</p><CapabilityNote capabilityKey="sentinel_core" /><CapabilityNote capabilityKey="intelligence_graph" /></div><a href="/api/export?type=sentinel-graph-nodes">Exportar Nos</a></div>
     <div className="s2b-kpis">
       <article className="panel"><span>Status SIG</span><strong>{status?.status || "EMPTY"}</strong></article>
       <article className="panel"><span>Nos</span><strong>{nf.format(status?.nodes || 0)}</strong></article>

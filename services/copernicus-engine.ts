@@ -2,6 +2,11 @@ import type { DatabaseSync } from "node:sqlite";
 import rules from "@/config/copernicus_rules.json";
 import { SITE_SELECT } from "@/api/site-query";
 import { siteRow } from "@/services/site-service";
+// STAGE 0 -- the truth contract (dataStatus/source/isRealSatelliteEvidence) and the synthetic
+// scene-id prefix live in the dependency-free services/copernicus-truth.ts, not here, so they
+// can be unit tested without pulling in node:sqlite via siteRow -> lib/db.ts above. See
+// docs/stage-0/05_TEST_BASELINE.md for why that split exists.
+import { copernicusTruthMetadata, MOCK_SCENE_ID_PREFIX } from "@/services/copernicus-truth";
 
 type SiteLike = {
   id: number;
@@ -111,7 +116,7 @@ function mockScenes(site: SiteLike, radiusKm: number, lookbackDays: number): Cop
       orbitDirection: orbit,
       polarization: rules.mockMode.polarizations[0],
       relativeOrbit: 30 + index,
-      sceneId: `MOCK_S1_${site.site}_${date.slice(0, 10).replace(/-/g, "")}_${orbit}`,
+      sceneId: `${MOCK_SCENE_ID_PREFIX}${site.site}_${date.slice(0, 10).replace(/-/g, "")}_${orbit}`,
       cloudNote: "SAR Sentinel-1 opera dia/noite e em qualquer clima; nuvens nao sao limitacao principal.",
       sourceUrl: rules.endpoints.odata,
       metadata: { mode: "mock_metadata_only", radiusKm, lookbackDays, noHeavyImageDownload: true },
@@ -121,14 +126,30 @@ function mockScenes(site: SiteLike, radiusKm: number, lookbackDays: number): Cop
 
 export function fetchSentinel1Metadata(site: SiteLike, radiusKm = rules.defaultRadiusKm, lookbackDays = rules.defaultLookbackDays) {
   const coordinate = validateSiteCoordinates(site);
-  if (!coordinate.valid) return { mode: "metadata_only", mock: true, scenes: [] as CopernicusScene[], warning: "Coordenada invalida; busca Sentinel-1 nao simulada." };
-  const hasCredentials = Boolean(process.env.COPERNICUS_ACCESS_TOKEN || process.env.COPERNICUS_CLIENT_ID);
-  const scenes = hasCredentials ? mockScenes(site, radiusKm, lookbackDays) : mockScenes(site, radiusKm, lookbackDays);
+  if (!coordinate.valid) {
+    return {
+      mode: "metadata_only",
+      mock: true,
+      ...copernicusTruthMetadata(),
+      scenes: [] as CopernicusScene[],
+      warning: "Coordenada invalida; busca Sentinel-1 nao simulada.",
+    };
+  }
+  // STAGE 0 TRUTH CORRECTION (audit-v4 risk R1 / backlog B0.2):
+  // There is no real HTTP client to the Copernicus Data Space Ecosystem in this version.
+  // The previous code branched on COPERNICUS_ACCESS_TOKEN/COPERNICUS_CLIENT_ID but called
+  // mockScenes() on BOTH branches, so configuring credentials silently changed nothing while
+  // implying real integration. This function now always takes the explicit synthetic path
+  // and always reports that fact. Do not reintroduce a credential-conditioned branch here
+  // until a real Stage 3 client (see docs/audit-v4/14_ROADMAP_V4.md, Stage 3) actually exists
+  // behind it — presence of credentials must never be treated as proof of real data.
+  const scenes = mockScenes(site, radiusKm, lookbackDays);
   return {
     mode: rules.apiMode,
-    mock: !hasCredentials,
+    mock: true,
+    ...copernicusTruthMetadata(),
     scenes,
-    warning: hasCredentials ? "Metadata-only ativo; download SAR desabilitado." : "Modo mock controlado: sem credenciais Copernicus configuradas e sem download de imagens.",
+    warning: `Modo simulado: nenhuma chamada real ao Copernicus Data Space Ecosystem ocorre nesta versao. Todo cenario retornado e sintetico (scene_id prefixado ${MOCK_SCENE_ID_PREFIX}). A presenca de credenciais configuradas nao habilita busca real.`,
   };
 }
 
@@ -192,6 +213,7 @@ export function copernicusForSite(db: DatabaseSync, id: number, radiusKm = rules
     recommendation,
     warning: metadata.warning,
     governance: rules.governance.disclaimer,
+    ...copernicusTruthMetadata(),
   };
 }
 
@@ -210,13 +232,18 @@ export function copernicusStatus(db: DatabaseSync) {
     apiMode: rules.apiMode,
     allowDownload: rules.allowDownload,
     metadataOnly: true,
-    mockMode: !(process.env.COPERNICUS_ACCESS_TOKEN || process.env.COPERNICUS_CLIENT_ID),
+    // STAGE 0 TRUTH CORRECTION: always true until a real Stage 3 client exists. Configured
+    // credentials never change this — see fetchSentinel1Metadata() above for the rationale.
+    mockMode: true,
+    ...copernicusTruthMetadata(),
     totals: { totalSites: total, validCoordinates, missingCoordinates: Math.max(0, total - validCoordinates), eligibleSites: validCoordinates, sceneRows, validations, averageValidationScore: avgScore },
     latestValidations: latest,
     limitations: [
+      "100% simulado: nenhuma chamada de rede real ao Copernicus Data Space Ecosystem existe nesta versao.",
+      "A presenca de credenciais configuradas (COPERNICUS_ACCESS_TOKEN/COPERNICUS_CLIENT_ID) NAO habilita busca real nesta versao.",
       "Nao baixa imagens SAR nesta fase.",
       "Nao substitui vistoria de campo.",
-      "Nao garante identificacao automatica de torre.",
+      "Nao garante identificacao automatica de torre, antena, shelter ou cabo.",
       "Evidencia deve ser combinada com TIM/VIVO, mapa, coordenadas e dados operacionais."
     ],
   };

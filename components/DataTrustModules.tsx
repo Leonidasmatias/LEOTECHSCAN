@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CapabilityBadge, CapabilityNote } from "@/components/CapabilityBadge";
 
 const nf = new Intl.NumberFormat("pt-BR");
 
@@ -26,7 +27,7 @@ export function DataTrustView() {
     window.location.reload();
   };
   return <section className="s2b-view">
-    <div className="s2b-hero panel"><div><p className="eyebrow">DATA TRUST ENGINE</p><h2>Confianca e Evidencias</h2><p>Score tecnico auditavel por site, com historico, evidencias e governanca.</p></div><a href="/api/export?type=data-trust-scores">Exportar CSV</a></div>
+    <div className="s2b-hero panel"><div><p className="eyebrow">DATA TRUST ENGINE</p><h2>Confianca e Evidencias <CapabilityBadge capabilityKey="data_trust" /></h2><p>Score tecnico auditavel por site, com historico, evidencias e governanca.</p><CapabilityNote capabilityKey="data_trust" /></div><a href="/api/export?type=data-trust-scores">Exportar CSV</a></div>
     {error ? <p className="error">{error}</p> : null}
     <div className="s2b-kpis">
       <article className="panel"><span>Trust medio</span><strong>{data?.summary?.averageTrust || 0}</strong></article>
@@ -48,7 +49,7 @@ export function DataTrustView() {
 
 export function SiteTrustPanel({ siteId }: { siteId: number }) {
   const { data } = useApi<any>(`/api/data-trust/site?id=${siteId}`);
-  return <section className="site-copernicus"><h3>Data Trust & Confidence</h3>
+  return <section className="site-copernicus"><h3>Data Trust & Confidence <CapabilityBadge capabilityKey="data_trust" /></h3>
     <div className="site-panel-grid"><span>Trust Score<strong>{data?.trustScore ?? "-"}</strong></span><span>Level<strong>{data?.trustLevel || "-"}</strong></span><span>Badge<strong>{data?.trustBadge || "-"}</strong></span><span>Satélite<strong>{data?.satelliteConfidence ?? "-"}</strong></span><span>Cadastro<strong>{data?.cadastralConfidence ?? "-"}</strong></span><span>Operacional<strong>{data?.operationalConfidence ?? "-"}</strong></span></div>
     <p>{data?.recommendation || "Trust Score e uma estimativa tecnica baseada nos dados disponiveis."}</p>
     <div className="site-actions"><a href={`/api/evidence-center/export?id=${siteId}&format=pdf`}>Gerar Dossie Tecnico</a><a href={`/api/evidence-center/export?id=${siteId}&format=csv`}>Exportar CSV</a></div>
@@ -57,7 +58,8 @@ export function SiteTrustPanel({ siteId }: { siteId: number }) {
 
 export function EvidenceCenterPanel({ siteId }: { siteId: number }) {
   const { data } = useApi<any>(`/api/evidence-center/site?id=${siteId}`);
-  return <section className="site-copernicus"><h3>Telecom Evidence Center</h3>
+  return <section className="site-copernicus"><h3>Telecom Evidence Center <CapabilityBadge capabilityKey="evidence_center" /></h3>
+    <CapabilityNote capabilityKey="evidence_center" />
     <div className="s2b-rows">{(data?.evidences || []).map((row: any) => <div key={`${row.type}-${row.source}`}><span><small>tipo</small><strong>{row.type}</strong></span><span><small>fonte</small><strong>{row.source}</strong></span><span><small>status</small><strong>{row.status}</strong></span><span><small>resumo</small><strong>{row.summary}</strong></span></div>)}</div>
     <p>{data?.governance || "Dossie tecnico de apoio, nao substitui vistoria de campo."}</p>
   </section>;

@@ -1,0 +1,20 @@
+.table-action{border:1px solid rgba(69,214,196,.28);background:rgba(69,214,196,.08);color:var(--mint);border-radius:7px;padding:7px 10px;font-size:10px;font-weight:900;cursor:pointer}
+.table-action:hover{background:rgba(69,214,196,.16)}
+.site-panel-backdrop{position:fixed;inset:0;z-index:2200;background:rgba(4,10,18,.68);display:flex;justify-content:flex-end;padding:18px}
+.site-panel{width:min(520px,100%);height:100%;overflow:auto;padding:22px}
+.site-panel-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:16px}
+.site-panel-head h2{margin:0;font-size:30px;letter-spacing:-1px}
+.site-panel-head span{display:block;color:var(--muted);font-size:12px;margin-top:5px}
+.site-panel-head button{border:1px solid var(--line);background:#0a192a;color:#cfe0ee;border-radius:8px;padding:9px 12px;cursor:pointer}
+.site-panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.site-panel-grid span,.site-address{border:1px solid rgba(255,255,255,.07);background:rgba(7,17,31,.42);border-radius:10px;padding:12px;color:#6f879d;font-size:9px;text-transform:uppercase;letter-spacing:1.2px}
+.site-panel-grid strong,.site-address strong{display:block;color:#eaf5ff;font-size:12px;text-transform:none;letter-spacing:0;margin-top:6px;line-height:1.35}
+.site-address{margin-top:10px}
+.site-address small{color:#6f879d;text-transform:uppercase;letter-spacing:1.2px}
+.site-coordinates{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.site-coordinates span,.site-coordinates a{border:1px solid rgba(69,214,196,.18);background:rgba(69,214,196,.06);border-radius:10px;padding:12px;color:#d9f9f5;text-decoration:none;font-size:12px;font-weight:800}
+.site-coordinates a{grid-column:1/-1;text-align:center}
+.site-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.site-actions button{border:0;background:var(--mint);color:#07111f;border-radius:9px;padding:11px 12px;font-size:11px;font-weight:950;cursor:pointer}
+.copy-status{margin:14px 0 0;color:var(--mint);font-size:12px;font-weight:800}
+@media(max-width:720px){.site-panel-backdrop{padding:8px}.site-panel-grid,.site-actions{grid-template-columns:1fr}.site-coordinates{grid-template-columns:1fr}}

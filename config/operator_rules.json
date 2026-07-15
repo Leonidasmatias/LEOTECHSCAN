@@ -1,0 +1,12 @@
+{
+  "version": "1.3.0",
+  "description": "Regras configuráveis de classificação. A primeira regra com evidência explícita vence.",
+  "operators": [
+    { "name": "TIM", "site_prefixes": ["TIM", "SL", "18NL", "4G-", "5G-", "SR-", "NL"], "station_prefixes": ["TIM", "SL"], "contains": ["_TIM", "-TIM"], "technology_patterns": [] },
+    { "name": "Vivo", "site_prefixes": ["VIVO", "VIV", "VV-"], "station_prefixes": ["VIVO", "VIV"], "contains": ["TELESP", "_VIV"], "technology_patterns": [] },
+    { "name": "Claro", "site_prefixes": ["CLARO", "CLR", "CL-"], "station_prefixes": ["CLARO", "CLR"], "contains": ["_CLARO", "-CLR"], "technology_patterns": [] },
+    { "name": "Oi", "site_prefixes": ["OI-", "OI_", "TELEMAR"], "station_prefixes": ["OI", "TELEMAR"], "contains": ["_OI", "-OI"], "technology_patterns": [] },
+    { "name": "Algar", "site_prefixes": ["ALGAR", "CTBC"], "station_prefixes": ["ALGAR", "CTBC"], "contains": ["_ALGAR", "-CTBC"], "technology_patterns": [] },
+    { "name": "Outros", "site_prefixes": ["NEXTEL", "NXT", "EMBRATEL", "SERCOMTEL", "BRISANET", "WINITY"], "station_prefixes": ["NEXTEL", "EMBRATEL", "SERCOMTEL", "BRISANET", "WINITY"], "contains": ["_NEXTEL", "_EMBRATEL", "_SERCOMTEL", "_BRISANET", "_WINITY"], "technology_patterns": [] }
+  ]
+}

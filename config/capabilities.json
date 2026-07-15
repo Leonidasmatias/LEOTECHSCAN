@@ -1,0 +1,227 @@
+{
+  "schemaVersion": "1.0.0-stage0",
+  "generatedBy": "Stage 0 - Stabilization and Truth Baseline",
+  "note": "Single source of truth for what the LeoTechScan interface may claim about each capability. Every screen that surfaces one of these keys must read its status from here rather than assuming operational behavior.",
+  "capabilities": [
+    {
+      "key": "mission_control",
+      "displayName": "Mission Control",
+      "status": "operational",
+      "evidenceType": "real_data",
+      "backendAvailable": true,
+      "dataSource": "sites (SQLite local)",
+      "limitations": "KPIs e rankings são derivados diretamente da base importada; não há validação externa dos números além da própria importação.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "site_mapping",
+      "displayName": "Mapa de Sites",
+      "status": "partial",
+      "evidenceType": "real_data",
+      "backendAvailable": true,
+      "dataSource": "sites (SQLite local)",
+      "limitations": "Sem índice espacial dedicado e sem clustering de marcador; mapa amostra até 4.000 pontos em vez de exibir a base completa.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "telecom_ai",
+      "displayName": "Telecom AI",
+      "status": "simulated",
+      "evidenceType": "rule_based_estimate",
+      "backendAvailable": true,
+      "dataSource": "sites + regras de casamento de palavra-chave",
+      "limitations": "Não é um modelo de linguagem nem IA/ML. É casamento de palavras-chave em português roteando para consultas SQL fixas.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "rollout_intelligence",
+      "displayName": "Rollout Intelligence",
+      "status": "partial",
+      "evidenceType": "rule_based_estimate",
+      "backendAvailable": true,
+      "dataSource": "sites + config/sentinel_rules.json",
+      "limitations": "Estimativas de equipes/MOS/instalações são fórmulas determinísticas configuráveis, não previsão validada estatisticamente.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "alert_center",
+      "displayName": "Alert Center",
+      "status": "operational",
+      "evidenceType": "rule_based_estimate",
+      "backendAvailable": true,
+      "dataSource": "sites + config/sentinel_rules.json",
+      "limitations": "Alertas são gerados por regras de limiar fixas (thresholds), não por detecção estatística de anomalia.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "market_intelligence",
+      "displayName": "Market Intelligence",
+      "status": "operational",
+      "evidenceType": "real_data",
+      "backendAvailable": true,
+      "dataSource": "sites (SQLite local)",
+      "limitations": "Cobre apenas as operadoras presentes na base importada (hoje TIM e VIVO).",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "opportunities",
+      "displayName": "Oportunidades",
+      "status": "partial",
+      "evidenceType": "rule_based_estimate",
+      "backendAvailable": true,
+      "dataSource": "sites + services/rollout-engine.ts",
+      "limitations": "Ranking de prioridade é uma fórmula ponderada configurável, não validação de mercado externa.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "data_quality",
+      "displayName": "Qualidade Cadastral",
+      "status": "operational",
+      "evidenceType": "derived_data",
+      "backendAvailable": true,
+      "dataSource": "sites (SQLite local)",
+      "limitations": "Detecta ausência/inconsistência de campo; não valida veracidade do dado preenchido.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "duplicate_detection",
+      "displayName": "Detecção de Duplicidades",
+      "status": "partial",
+      "evidenceType": "rule_based_estimate",
+      "backendAvailable": true,
+      "dataSource": "sites (SQLite local)",
+      "limitations": "Candidatos são sugestivos (mesma sigla/coordenada/endereço); requer revisão humana antes de qualquer ação corretiva.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "national_timeline",
+      "displayName": "Timeline Nacional",
+      "status": "partial",
+      "evidenceType": "real_data",
+      "backendAvailable": true,
+      "dataSource": "sites, import_audit (SQLite local)",
+      "limitations": "Granularidade limitada ao número de execuções de importação já realizadas (hoje apenas 2 eventos registrados).",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "digital_twin",
+      "displayName": "Digital Twin",
+      "status": "partial",
+      "evidenceType": "rule_based_estimate",
+      "backendAvailable": true,
+      "dataSource": "sites, site_trust_scores (SQLite local)",
+      "limitations": "É uma agregação de scores e proximidade geográfica, não uma simulação física de gêmeo digital. Ver Roadmap V4 Stage 9 para evolução planejada.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "strategic_planning",
+      "displayName": "Strategic Planning",
+      "status": "simulated",
+      "evidenceType": "rule_based_estimate",
+      "backendAvailable": true,
+      "dataSource": "sites + config/sentinel_rules.json",
+      "limitations": "Simulação declarada como estimativa; não considera disponibilidade real de equipe, licenciamento ou capacidade de transmissão.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "scenario_planner",
+      "displayName": "Scenario Planner",
+      "status": "simulated",
+      "evidenceType": "rule_based_estimate",
+      "backendAvailable": true,
+      "dataSource": "sites + services/enterprise-v3-engine.ts",
+      "limitations": "Comparativo antes/depois é uma projeção aritmética simples, não um modelo de mercado validado.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "advanced_gis",
+      "displayName": "Advanced GIS",
+      "status": "partial",
+      "evidenceType": "real_data",
+      "backendAvailable": true,
+      "dataSource": "sites (SQLite local)",
+      "limitations": "Consulta por raio usa bounding-box sem índice espacial dedicado (RTree ainda não implementado — ver Roadmap V4 Stage 1).",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "copernicus_catalogue",
+      "displayName": "Copernicus Data Space — Catálogo",
+      "status": "simulated",
+      "evidenceType": "simulated",
+      "backendAvailable": false,
+      "dataSource": "Nenhuma — gerador local de metadados sintéticos (services/copernicus-engine.ts)",
+      "limitations": "Nenhuma chamada de rede real ao Copernicus Data Space Ecosystem existe. Todo cenário retornado é sintético (scene_id prefixado MOCK_S1_). A presença de credenciais configuradas NÃO habilita busca real nesta versão.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "sentinel_1_metadata",
+      "displayName": "Sentinel-1 — Metadados de Cena",
+      "status": "simulated",
+      "evidenceType": "simulated",
+      "backendAvailable": false,
+      "dataSource": "Nenhuma — dados sintéticos gerados localmente",
+      "limitations": "Órbita, polarização, tipo de produto e datas de aquisição são gerados por aritmética local, não refletem cenas reais do satélite Sentinel-1.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "sentinel_1_processing",
+      "displayName": "Sentinel-1 — Processamento SAR",
+      "status": "unavailable",
+      "evidenceType": "not_yet_available",
+      "backendAvailable": false,
+      "dataSource": "Nenhuma",
+      "limitations": "Calibração, correção de terreno, co-registro e demais etapas de processamento SAR não existem no código. Planejado para Roadmap V4 Stage 5.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "sentinel_1_change_detection",
+      "displayName": "Sentinel-1 — Detecção de Mudança",
+      "status": "unavailable",
+      "evidenceType": "not_yet_available",
+      "backendAvailable": false,
+      "dataSource": "Nenhuma",
+      "limitations": "Nenhum indicador de mudança temporal real é calculado hoje. Planejado para Roadmap V4 Stage 6. Sentinel-1 nunca deve ser apresentado como capaz de identificar torres/antenas individualmente.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "data_trust",
+      "displayName": "Data Trust Engine",
+      "status": "operational",
+      "evidenceType": "rule_based_estimate",
+      "backendAvailable": true,
+      "dataSource": "sites, site_trust_scores (SQLite local)",
+      "limitations": "Trust Score é uma soma ponderada de completude/confiança de campo; não substitui vistoria de campo nem validação externa.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "evidence_center",
+      "displayName": "Evidence Center",
+      "status": "partial",
+      "evidenceType": "derived_data",
+      "backendAvailable": true,
+      "dataSource": "sites, site_evidence_center, copernicus_scenes (SQLite local)",
+      "limitations": "Evidência é um dossiê de metadados agregados internos; a parcela relativa a Copernicus/Sentinel-1 dentro do dossiê é simulada (ver copernicus_catalogue).",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "sentinel_core",
+      "displayName": "Sentinel Core",
+      "status": "partial",
+      "evidenceType": "rule_based_estimate",
+      "backendAvailable": true,
+      "dataSource": "sig_nodes, sig_edges, sig_insights (SQLite local)",
+      "limitations": "Sem relação com o satélite Sentinel-1 — é um grafo de conhecimento interno (sites/municípios/operadoras). Cobre apenas uma amostra da base (modo sample, até 5.000 sites), não a base nacional completa.",
+      "lastValidatedAt": "2026-07-15"
+    },
+    {
+      "key": "intelligence_graph",
+      "displayName": "Sentinel Intelligence Graph (SIG)",
+      "status": "partial",
+      "evidenceType": "rule_based_estimate",
+      "backendAvailable": true,
+      "dataSource": "sig_nodes, sig_edges, sig_insights (SQLite local)",
+      "limitations": "Insights são gerados por 3 regras fixas (baixa confiança, sem Copernicus, concentração de operadora), não por inferência estatística ou aprendizado de máquina.",
+      "lastValidatedAt": "2026-07-15"
+    }
+  ]
+}

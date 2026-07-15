@@ -1,0 +1,52 @@
+# Dependencies
+node_modules
+
+# Next.js build output and caches
+.next
+.turbo
+*.tsbuildinfo
+.eslintcache
+
+# Environment / secrets — never commit real credentials
+.env
+.env.*
+!.env.example
+
+# Local SQLite database (data, not source code)
+DATABASE/*.db
+DATABASE/*.db-shm
+DATABASE/*.db-wal
+DATABASE/*.db-journal
+*.tmp.db
+
+# Backups (large binary snapshots, not source code)
+/BACKUPS/
+
+# Logs
+*.log
+LOGS/*.log
+sprint*.out.log
+sprint*.err.log
+
+# Generated exports (CSV/PDF) — regenerable, not source code
+EXPORTACOES/*
+!EXPORTACOES/.gitkeep
+!EXPORTACOES/README.md
+
+# Excel source files — never versioned, always read-only inputs
+*.xlsx
+*.xlsm
+~$*
+
+# Test / coverage output
+coverage
+.nyc_output
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor artifacts
+.vscode/*
+!.vscode/extensions.json
+.idea

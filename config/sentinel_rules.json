@@ -1,0 +1,118 @@
+{
+  "version": "2.0.0-sprint2a",
+  "lts": {
+    "weights": {
+      "coverage": 35,
+      "density": 20,
+      "operators": 15,
+      "technologies": 20,
+      "potential": 10
+    },
+    "levels": [
+      { "name": "Critico", "min": 0, "max": 39, "stars": 1, "color": "#ff4d6d" },
+      { "name": "Atencao", "min": 40, "max": 59, "stars": 2, "color": "#ff8a4c" },
+      { "name": "Competitivo", "min": 60, "max": 79, "stars": 4, "color": "#f5c451" },
+      { "name": "Estrategico", "min": 80, "max": 100, "stars": 5, "color": "#45d6c4" }
+    ]
+  },
+  "opi": {
+    "weights": {
+      "fewSites": 35,
+      "fewOperators": 25,
+      "lowCoverage": 25,
+      "lowDensity": 15
+    }
+  },
+  "sri": {
+    "weights": {
+      "lowCoverage": 30,
+      "lowRedundancy": 25,
+      "lowPresence": 25,
+      "lowDiversity": 20
+    },
+    "levels": [
+      { "name": "Baixo", "min": 0, "max": 30, "color": "#45d6c4" },
+      { "name": "Medio", "min": 31, "max": 60, "color": "#f5c451" },
+      { "name": "Alto", "min": 61, "max": 80, "color": "#ff8a4c" },
+      { "name": "Critico", "min": 81, "max": 100, "color": "#ff4d6d" }
+    ]
+  },
+  "nearby": {
+    "limit": 10,
+    "radiusKm": 75
+  },
+  "colors": {
+    "tim": "#45d6c4",
+    "vivo": "#a36dff",
+    "claro": "#ff4d6d",
+    "algar": "#39a9ff",
+    "neutral": "#8fa3ba"
+  },
+  "limits": {
+    "healthyApiMs": 10000,
+    "alertCriticalSri": 81,
+    "alertLowLts": 40
+  },
+  "rollout": {
+    "targetSitesPerTeam": 8,
+    "mosPerTeam": 2,
+    "installationsPerTeam": 6,
+    "priority": [
+      { "name": "Muito Alta", "min": 85 },
+      { "name": "Alta", "min": 70 },
+      { "name": "Media", "min": 55 },
+      { "name": "Baixa", "min": 35 },
+      { "name": "Muito Baixa", "min": 0 }
+    ]
+  },
+  "telecomAi": {
+    "maxRows": 12,
+    "lowCoverageSiteThreshold": 3
+  },
+  "alerts": {
+    "lowDensitySites": 3,
+    "criticalSri": 81,
+    "lowLts": 40
+  },
+  "market": {
+    "dominanceThreshold": 60
+  },
+  "enterpriseV3": {
+    "digitalTwin": {
+      "nearbyMunicipalityLimit": 8,
+      "nearbySiteLimit": 12,
+      "riskCritical": 80,
+      "opportunityHigh": 70
+    },
+    "strategicPlanning": {
+      "defaultCostPerSite": 180000,
+      "sitesPerTeamPerMonth": 8,
+      "mosPerSite": 0.25,
+      "installationsPerSite": 1,
+      "impactWeights": {
+        "lts": 0.18,
+        "opi": 0.12,
+        "marketShare": 0.08
+      },
+      "riskLimits": {
+        "high": 70,
+        "medium": 45
+      }
+    },
+    "scenarioPlanner": {
+      "maxBenefitedMunicipalities": 20,
+      "defaultHorizonDays": 120
+    },
+    "advancedGis": {
+      "defaultRadiusKm": 30,
+      "maxRadiusKm": 200,
+      "maxSites": 500,
+      "clusterPrecision": 1
+    },
+    "executiveReports": {
+      "maxRows": 250,
+      "criticalAlertLimit": 25,
+      "opportunityLimit": 50
+    }
+  }
+}

@@ -1,0 +1,42 @@
+# 03 — Documentation vs. Code Traceability Matrix
+
+Metodologia: cada feature documentada em `README.md`, `CHANGELOG.md` e nos 5 arquivos de sprint em `LOGS/*.md` foi verificada contra código-fonte real, rota de API real e tabela de banco real. **Nenhuma alegação foi aceita apenas por estar documentada.**
+
+Nota geral favorável: ao contrário do que se vê com frequência em projetos com "hype" de IA, a documentação deste projeto (`README.md`, `CHANGELOG.md`) já é **auto-transparente** sobre o que é simulação/regra local versus integração real — por exemplo, o Changelog registra explicitamente "ainda sem integração externa de satélite" e "preparada para futura integração com LLM". A auditoria confirma que essas ressalvas são precisas.
+
+| Feature documentada | Arquivos-fonte | Rota de API | Tabela(s) de banco | Testes | Status real | Risco | Ação requerida |
+|---|---|---|---|---|---|---|---|
+| Mission Control | `components/MissionControl.tsx` | `GET /api/mission-control`, `GET /api/sentinel-core/status` | `sites`, `sig_*` | Nenhum | Implementado | Baixo | Nenhuma |
+| Dashboard Executivo / Executive Risk View | `components/Dashboard.tsx` | `GET /api/dashboard` | `sites`, `metadata` | Nenhum | Implementado | Baixo | Nenhuma |
+| Telecom AI | `services/telecom-ai-engine.ts` | `GET /api/telecom-ai` | `sites` (via `strategic-data.ts`) | Nenhum | **Rule-based, rotulado corretamente no changelog como "preparada para futura integração com LLM"** | Médio (risco de expectativa do usuário final se o nome "AI" for tomado literalmente) | Renomear na UI para algo como "Consulta Assistida por Regras" ou documentar visivelmente a limitação na própria tela |
+| Rollout Intelligence | `services/rollout-engine.ts` | `GET /api/rollout` | `sites` | Nenhum | Implementado (regra) | Baixo | Nenhuma |
+| Alert Center | `services/alert-engine.ts` | `GET /api/alerts` | `sites` | Nenhum | Implementado (regra) | Baixo | Nenhuma |
+| Market Intelligence | `services/market-engine.ts` | `GET /api/market` | `sites` | Nenhum | Implementado | Baixo | Nenhuma |
+| Opportunities | `services/rollout-engine.ts` | `GET /api/opportunities` | `sites` | Nenhum | Implementado | Baixo | Nenhuma |
+| Data Quality | `services/data-quality-engine.ts` | `GET /api/data-quality` | `sites` | Nenhum | Implementado | Baixo | Nenhuma |
+| Duplicate Detection | `services/duplicates-engine.ts` | `GET /api/duplicates` | `sites` | Nenhum | Implementado (heurística sugestiva, corretamente rotulada) | Baixo | Nenhuma |
+| National Timeline | `services/national-timeline-engine.ts` | `GET /api/national-timeline` | `sites`, `import_audit` | Nenhum | Implementado, mas raso (só 2 eventos de importação existem hoje) | Baixo | Nenhuma |
+| Site Notes | `services/site-notes.ts` | `GET/POST /api/sites/[id]/notes` | `site_notes` | Nenhum | Implementado | Baixo — mas ver `10_SECURITY_AUDIT.md` (injeção de fórmula em export CSV) | Sanitizar antes de exportar |
+| Digital Twin | `services/enterprise-v3-engine.ts` (`digitalTwinSite`) | `GET /api/digital-twin/site` | `sites`, `site_trust_scores` | Nenhum | **Rule-based prototype** — agrega scores e proximidade, não é gêmeo digital com simulação | Médio (nome sugere capacidade mais avançada do que existe) | Alinhar expectativa/nome com o roadmap V4 (Stage 9) |
+| Strategic Planning | `services/enterprise-v3-engine.ts` (`strategicPlanning`) | `POST /api/strategic-planning` | `sites` | Nenhum | Implementado (simulação declarada como estimativa) | Baixo | Nenhuma |
+| Scenario Planner | `services/enterprise-v3-engine.ts` (`scenarioPlanner`) | `POST /api/scenario-planner` | `sites` | Nenhum | Implementado (simulação declarada) | Baixo | Nenhuma |
+| Advanced GIS | `services/enterprise-v3-engine.ts` (`geointelligence`) | `GET /api/geointelligence` | `sites` | Nenhum | Implementado, mas sem índice espacial (ver `08_GIS_AUDIT.md`) | Médio (performance em escala) | Ver roadmap Stage 1 |
+| Executive Reports | `app/api/executive-reports`, `utils/pdf.ts` | `GET /api/executive-reports` | várias | Nenhum | Implementado — PDF é gerador artesanal de 1 página, muito simples para o nome "Executive Reports" | Baixo/Médio (expectativa de qualidade gráfica) | Avaliar lib de PDF real se relatórios formais forem necessários |
+| Executive Workspace | `services/enterprise-v3-engine.ts` (`executiveWorkspace`) | `GET /api/executive-workspace` | `sites`, `import_audit` | Nenhum | Implementado | Baixo | Nenhuma |
+| Copernicus Satellite Intelligence | `services/copernicus-engine.ts`, `config/copernicus_rules.json` | `GET /api/copernicus/status,site,search,validation` | `copernicus_scenes`, `site_satellite_validation` | Nenhum | **Mocked / metadata-only** — 100% dos registros (`1.270` cenas) têm `scene_id` prefixado `MOCK_S1_*` e `metadata_json.mode="mock_metadata_only"`. **Mesmo com credenciais Copernicus configuradas, o código sempre chama a função de mock** (`copernicus-engine.ts` linha 126: ambos os ramos do `hasCredentials ? ... : ...` chamam `mockScenes(...)`). Nenhuma chamada HTTP real existe no código. | **Alto** — é o achado mais crítico da auditoria; ver `09_SENTINEL_COPERNICUS_AUDIT.md` | Não comunicar esta funcionalidade como "integração Copernicus" sem reescrever o cliente HTTP real (Roadmap Stage 3) |
+| Data Trust Engine | `services/data-trust-engine.ts` | `GET /api/data-trust`, `POST /api/data-trust/recalculate` | `site_trust_scores`, `site_validation_history` | Nenhum | Implementado (fórmula ponderada declarada como estimativa técnica) | Baixo | Nenhuma |
+| Confidence Engine | `services/confidence-engine.ts` | (interno, consumido por Data Trust) | — | Nenhum | Implementado | Baixo | Nenhuma |
+| Evidence Center | `services/evidence-center-engine.ts` | `GET /api/evidence-center/site,export` | `site_evidence_center` | Nenhum | Implementado — "evidência" é metadado agregado (cadastro + coordenada + Copernicus + Trust Score + notas), não prova documental externa | Médio (nome pode sugerir mais do que agregação de metadados) | Nenhuma ação de código; cuidado na comunicação |
+| Audit Trail | `services/audit-trail.ts` | `GET /api/audit-trail` | `audit_trail` (288 linhas) | Nenhum | Implementado | Baixo | Nenhuma |
+| Validation History | `services/data-trust-engine.ts` (`validationHistory`) | `GET /api/validation-history/site` | `site_validation_history` (270 linhas) | Nenhum | Implementado | Baixo | Nenhuma |
+| Sentinel Core | `sentinel-core/engine.ts` + 24 arquivos | `GET/POST /api/sentinel-core/*` | `sig_nodes`, `sig_edges`, `sig_snapshots`, `sig_insights` | Nenhum | **Rule-based prototype**, explicitamente documentado como "modo sample" (limitado a 1.000–5.000 sites por build, não os 299.308 completos) | Médio | Nenhuma ação imediata; escalar deliberadamente no roadmap |
+| Sentinel Intelligence Graph (SIG) | `sentinel-core/graph/*.ts` | idem acima | idem acima | Nenhum | Implementado como grafo determinístico (nós = site/município/estado/operadora/tecnologia/coordenada; arestas = relações fixas) | Baixo | Nenhuma |
+| Inference Engine | `sentinel-core/inference/inference-engine.ts` | `GET /api/sentinel-core/insights` | `sig_insights` (35 linhas) | Nenhum | 3 regras fixas, não é inferência estatística/ML | Baixo (rotular corretamente) | Nenhuma |
+| Recommendation Engine | `sentinel-core/recommendation/recommendation-engine.ts` | `GET /api/sentinel-core/recommendations` | — | Nenhum | Lista estática + 3 queries | Baixo | Nenhuma |
+| Enterprise UX/UI (Sprint 7) | `app/enterprise-theme.css`, `components/*` | — | — | Nenhum | Implementado (CSS/tema visual); changelog confirma "não adiciona backend novo" | Baixo | Nenhuma |
+
+## Achados-chave desta fase
+
+1. A documentação do projeto (README/CHANGELOG) é **mais honesta do que a média** de projetos com nomenclatura "Enterprise"/"AI"/"Satellite" — ela já sinaliza internamente as limitações reais na maioria dos casos.
+2. O maior desvio entre nome/expectativa e implementação real está concentrado em três áreas: **(a)** "Telecom AI" (é busca por regra, não LLM), **(b)** "Copernicus Satellite Intelligence" (é 100% simulado, sem nenhuma chamada de rede real — este é diferente dos demais porque o próprio código finge verificar credenciais mas não usa o resultado dessa verificação), e **(c)** "Digital Twin" (é agregação de scores, não simulação de gêmeo digital).
+3. Nenhuma feature documentada foi classificada como "Dead code" ou "Not found" — tudo o que está no README/CHANGELOG tem código correspondente rastreável. Isso é um sinal positivo de disciplina de documentação incremental por sprint.

@@ -1,0 +1,33 @@
+{
+  "enabled": true,
+  "provider": "Copernicus Data Space Ecosystem",
+  "mission": "Sentinel-1",
+  "productTypes": ["GRD"],
+  "defaultRadiusKm": 2,
+  "defaultLookbackDays": 90,
+  "maxScenesPerSite": 5,
+  "allowDownload": false,
+  "apiMode": "metadata_only",
+  "endpoints": {
+    "odata": "https://catalogue.dataspace.copernicus.eu/odata/v1/Products",
+    "stac": "https://catalogue.dataspace.copernicus.eu/stac",
+    "sentinelHubFuture": "https://services.sentinel-hub.com",
+    "openEoFuture": "https://openeo.dataspace.copernicus.eu"
+  },
+  "mockMode": {
+    "enabledWhenNoCredentials": true,
+    "sceneSpacingDays": 12,
+    "orbitDirections": ["ASCENDING", "DESCENDING"],
+    "polarizations": ["VV,VH"]
+  },
+  "scoring": {
+    "validCoordinate": 35,
+    "recentScene": 30,
+    "multipleScenes": 20,
+    "metadataCompleteness": 15,
+    "recentSceneDays": 45
+  },
+  "governance": {
+    "disclaimer": "Copernicus/Sentinel-1 apoia validacao territorial, nao substitui vistoria de campo e nao garante identificacao automatica de torre."
+  }
+}

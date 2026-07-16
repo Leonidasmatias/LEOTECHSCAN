@@ -58,3 +58,16 @@ This document defines the security boundary. **It does not implement authenticat
 ## Revisit trigger
 
 This document's role model is intentionally minimal (six classes). Revisit if a future requirement needs per-Site or per-Operator scoped authorization (e.g. "Operator TIM's users may only see TIM sites") — nothing in the current repository or this mission's scope demonstrates that need yet (Principle 17).
+
+## Enforcement status (added by Increment 0, `17_INCREMENT_0_SECURITY_FLOOR.md`)
+
+Everything above remained a classification, not an enforcement, until Increment 0. Status as of that increment:
+
+| Operation | Class | Enforced? |
+|---|---|---|
+| `POST /api/data-trust/recalculate` | Privileged recalculation | **Enforced** — `requireAdminAuth` (`lib/auth-guard.ts`), shared-secret header, fail-closed |
+| `POST /api/sentinel-core/build` | Privileged recalculation | **Enforced** — same mechanism |
+| `GET /api/data-trust/site` | Authenticated read / Privileged recalculation (split needed) | Still only classified — enforcing today would 401 a live UI read path (`components/DataTrustModules.tsx`); split-then-enforce deferred to Increment 11 per this document's own table above |
+| `GET /api/evidence-center/site` | Authenticated read / Privileged recalculation (split needed) | Still only classified — same reason |
+| `POST /api/sites/[id]/notes` | Not previously classified in this document | Still unenforced — inventoried in Increment 0's report, not in this increment's approved scope |
+| Every other operation in the table above | As listed | Still only classified — unchanged by Increment 0, per its own minimal-footprint scope |

@@ -55,16 +55,32 @@ This roadmap is the controlled sequence Genesis Phase 2 **implementation** (a fu
 - Per `08_ADAPTER_STRATEGY.md`'s adapter #4. Depends on Increment 4 (needs ≥1 Score to react to, per Phase 1's roadmap sequencing) and Increment 5 (cites Evidence).
 - **Objective includes** the three-shape reconciliation named in `02_CANONICAL_DOMAIN_MODEL.md` — this increment's design doc (written when the increment starts, not now) must explicitly state which legacy source is authoritative for which recommendation category, not leave it implicit in code.
 
-## Increment 7 — Canonical read-only endpoint
+## Increment 7 — Canonical Read-Only Data Trust Path
 
-- Per `08_ADAPTER_STRATEGY.md`'s adapter #5 (API Projection Adapter) plus `13_MIGRATION_STRATEGY.md` stage 4 for Data Trust specifically: `GET /api/intelligence/data-trust/site`.
-- **Mandatory:** genuinely read-only (no `persist` parameter at all, or `persist` hardcoded false) — this route is the proof that Principle 6 is achievable, not just declared.
-- **Security:** classified per `10_SECURITY_BOUNDARY.md`, enforced if Increment 0's mechanism supports it by this point.
+**Revised and formally scoped by Increment 6.5** (`23_INCREMENT_6_5_ARCHITECTURAL_DECISIONS.md`) after a pre-implementation audit found the original one-line scope understated three required prerequisites (the Data Trust Score Adapter's DB-touching outer layer, a Snapshot Provider, and a minimal Orchestrator) that this roadmap entry previously left implicit. This entry supersedes the prior single-paragraph version.
+
+- Per `08_ADAPTER_STRATEGY.md`'s adapter #5 (API Projection Adapter) plus `13_MIGRATION_STRATEGY.md` stage 4 for Data Trust specifically: `GET /api/intelligence/data-trust/site`. Sequenced ahead of Increment 8 deliberately — see Decision D below and stage 3/4's clarified text in `13_MIGRATION_STRATEGY.md`.
+- **Required deliverables:**
+  1. Minimal read-only Snapshot Provider (Decision B).
+  2. Data Trust read-only outer adapter/service boundary — the previously-deferred DB-touching half of the Data Trust Score Adapter (Decision C).
+  3. Minimal, read-only `IntelligenceOrchestrator` scoped to Data Trust site requests only (Decision A).
+  4. Pure API Projection Adapter (`services/intelligence-adapters/api-projection-adapter.ts`).
+  5. Authenticated `GET /api/intelligence/data-trust/site`.
+  6. Unit tests (pure logic, no I/O).
+  7. Contract/dependency-boundary tests (source-inspection pattern, per Increments 3–6).
+  8. Route tests (status codes, response shape).
+  9. Side-effect regression tests (proving the *existing* legacy `GET /api/data-trust/site` route's behavior, including its persistence side effect, is completely unchanged).
+  10. Increment documentation (`docs/genesis-phase-2/24_INCREMENT_7_...md`).
+- **Explicit non-goals:** no migration of existing callers; no replacement of the legacy route; no persistence; no cache writes; no runtime registry activation (`data-trust`/`recommendation` manifests remain `"planned"`); no background execution or scheduler; no dual execution yet; no tolerance comparison yet (that is Increment 8); no UI changes; no database schema changes.
+- **Mandatory:** genuinely read-only (no `persist` parameter at all, or `persist` hardcoded false, at every layer including the new outer adapter) — this route is the proof that Principle 6 is achievable, not just declared. The route must call the new Orchestrator; it must not call `dataTrustForSite()` or any legacy engine directly (`12_DEPENDENCY_GRAPH.md`'s forbidden dependency #3 — no exception granted, per Decision A).
+- **Security:** classified `authenticated-read` per `10_SECURITY_BOUNDARY.md`; must fail closed for unauthenticated requests and be no weaker than the enforcement already applied to `POST /api/data-trust/recalculate`/`POST /api/sentinel-core/build` (Increment 0) — see Decision F, `23_INCREMENT_6_5_ARCHITECTURAL_DECISIONS.md`.
+- **Response shape:** a versioned envelope carrying canonical `Score<"data-trust">` as the primary result, `Evidence[]`/`Recommendation[]` only where truthfully derivable, snapshot/context metadata, and limitations/adaptation issues — no legacy-response mirroring, no fabricated fields. Exact schema documented in Increment 7's own doc before implementation (Decision E, `23_INCREMENT_6_5_ARCHITECTURAL_DECISIONS.md`).
 
 ## Increment 8 — Shadow execution and output comparison
 
 - `13_MIGRATION_STRATEGY.md` stages 1–3, for Data Trust. **Objective:** accumulate evidence that the canonical path matches the legacy path within the documented tolerance, before anything depends on the canonical path being correct.
 - **Acceptance criteria:** comparison report showing ≥99% of sampled sites within the ±2-point tolerance (or documented, understood exceptions for the remainder — not silently ignored outliers).
+- **Gate, clarified by Increment 6.5 Decision D:** this increment's passing comparison is mandatory before Increment 11 (UI migration, stage 5) may begin, and before the canonical endpoint may become anyone's default or replace the legacy route. It is not a prerequisite for Increment 7's route to exist, since that route has no callers to protect until Increment 11.
 
 ## Increment 9 — Persistence / version history
 

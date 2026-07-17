@@ -101,13 +101,15 @@ const CONFIDENCE_MANIFEST: EngineManifest = {
 
 const RECOMMENDATION_MANIFEST: EngineManifest = {
   id: "recommendation",
-  name: "Recommendation Engine (canonical, adapter not yet built)",
+  name: "Recommendation Engine",
   description:
     "Canonical Recommendation engine (02_CANONICAL_DOMAIN_MODEL.md). Recommendation-shaped " +
     "output already exists scattered across legacy services (e.g. " +
     "data-trust-engine.ts's recommendation() text, the Data Trust dashboard's alert list), " +
-    "but no canonical Recommendation Adapter exists yet (08_ADAPTER_STRATEGY.md adapter #4, " +
-    "Increment 6). This manifest declares the concept only.",
+    "and a pure Recommendation Adapter now exists (08_ADAPTER_STRATEGY.md adapter #4, " +
+    "Increment 6, services/intelligence-adapters/recommendation-adapter.ts) -- but it is not " +
+    "wired into this registry, any route, or an Orchestrator, so this declaration remains " +
+    "'planned', not 'active'.",
   status: "planned",
   version: {
     engineVersion: v0_1_0,

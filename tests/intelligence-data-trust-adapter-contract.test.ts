@@ -17,13 +17,17 @@ function stripComments(source: string): string {
   return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
 }
 
-// data-trust-read-adapter.ts (Increment 7) is a deliberate, documented exception to
-// "every file in this directory is pure": it is the DB-touching outer adapter
-// `docs/genesis-phase-2/23_INCREMENT_6_5_ARCHITECTURAL_DECISIONS.md` Decision C /
-// ADR-018 formally scoped into this directory. Its own dedicated contract test
-// (tests/intelligence-increment-7-contract.test.ts) covers its specific boundaries
-// instead -- every other file here is still swept by every check below, unchanged.
-const ADAPTER_EXCLUSIONS = ["data-trust-read-adapter.ts"];
+// data-trust-read-adapter.ts (Increment 7) and evidence-center-read-adapter.ts
+// (Increment 8) are deliberate, documented exceptions to "every file in this
+// directory is pure": each is a DB-touching outer adapter
+// (`docs/genesis-phase-2/23_INCREMENT_6_5_ARCHITECTURAL_DECISIONS.md` Decision C /
+// ADR-018 for the former; `docs/genesis-phase-2/26_INCREMENT_8_IMPLEMENTATION_PLAN.md`
+// for the latter). Each has its own dedicated contract test
+// (tests/intelligence-increment-7-contract.test.ts,
+// tests/intelligence-increment-8-contract.test.ts) covering its specific
+// boundaries instead -- every other file here is still swept by every check
+// below, unchanged.
+const ADAPTER_EXCLUSIONS = ["data-trust-read-adapter.ts", "evidence-center-read-adapter.ts"];
 
 function readAdapterFiles(): Array<{ file: string; source: string }> {
   return fs

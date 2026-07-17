@@ -9,15 +9,22 @@ import fs from "node:fs";
 import path from "node:path";
 
 const ADAPTER_DIR = path.resolve(__dirname, "..", "services", "intelligence-adapters");
-// data-trust-read-adapter.ts (Increment 7) is a deliberate, documented exception to
-// "every file in this directory is pure": it is the DB-touching outer adapter
-// `docs/genesis-phase-2/23_INCREMENT_6_5_ARCHITECTURAL_DECISIONS.md` Decision C /
-// ADR-018 formally scoped into this directory (per `08_ADAPTER_STRATEGY.md`'s own
-// category 2 "DB-fetching half" carve-out). Its own dedicated contract test
-// (tests/intelligence-increment-7-contract.test.ts) covers its specific boundaries
-// instead. Excluding it here is narrower than weakening any check -- every other
-// file in this directory is still swept by every assertion below, unchanged.
-const ADAPTER_EXCLUSIONS = ["data-trust-read-adapter.ts"];
+// data-trust-read-adapter.ts (Increment 7) and evidence-center-read-adapter.ts
+// (Increment 8) are deliberate, documented exceptions to "every file in this
+// directory is pure": each is a DB-touching outer adapter
+// (`docs/genesis-phase-2/23_INCREMENT_6_5_ARCHITECTURAL_DECISIONS.md` Decision C /
+// ADR-018 for the former; `docs/genesis-phase-2/26_INCREMENT_8_IMPLEMENTATION_PLAN.md`
+// for the latter) formally scoped into this directory (per `08_ADAPTER_STRATEGY.md`'s
+// own category 2 "DB-fetching half" carve-out). Each has its own dedicated
+// contract test (tests/intelligence-increment-7-contract.test.ts,
+// tests/intelligence-increment-8-contract.test.ts) covering its specific
+// boundaries instead. Excluding them here is narrower than weakening any check --
+// every other file in this directory is still swept by every assertion below,
+// unchanged. This is the second such exclusion -- per the Increment 8
+// architectural plan's own recorded technical-debt note, a third occurrence
+// would be the trigger to seriously reconsider a dedicated I/O-adapter
+// directory rather than a growing exclusion list.
+const ADAPTER_EXCLUSIONS = ["data-trust-read-adapter.ts", "evidence-center-read-adapter.ts"];
 const ADAPTER_FILES = fs.readdirSync(ADAPTER_DIR).filter((f) => f.endsWith(".ts") && !ADAPTER_EXCLUSIONS.includes(f));
 const INTELLIGENCE_DIR = path.resolve(__dirname, "..", "services", "intelligence");
 

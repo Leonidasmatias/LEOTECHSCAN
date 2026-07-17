@@ -98,3 +98,19 @@ export { projectCanonicalDataTrustResponse } from "./api-projection-adapter";
  * `services/intelligence-runtime/intelligence-orchestrator-instance.ts` (its only
  * intended caller) does.
  */
+
+export { computeEvidenceChecksum } from "./evidence-checksum";
+
+export type { EvidenceEnvelopeIssue, EvidenceCenterCanonicalEnvelope } from "./evidence-projection-adapter";
+
+export { projectCanonicalEvidenceResponse } from "./evidence-projection-adapter";
+
+/**
+ * `services/intelligence-adapters/evidence-center-read-adapter.ts` (Increment 8's
+ * DB-touching outer adapter) is, for the identical reason as
+ * `data-trust-read-adapter.ts` above, deliberately NOT re-exported here. Import it
+ * directly from `@/services/intelligence-adapters/evidence-center-read-adapter`
+ * instead -- exactly what
+ * `services/intelligence-runtime/intelligence-evidence-orchestrator-instance.ts`
+ * (its only intended caller) does.
+ */

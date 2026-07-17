@@ -1,12 +1,13 @@
 /**
- * Genesis Phase 2 — Increments 3, 4 & 5. Public entry point for adapters that
+ * Genesis Phase 2 — Increments 3, 4, 5 & 6. Public entry point for adapters that
  * translate legacy repository data into `services/intelligence/**`'s
  * canonical entities. Currently exports the Site Entity Adapter
  * (`08_ADAPTER_STRATEGY.md` adapter #1), the Data Trust Score Adapter's
  * pure translator (adapter #2's inner half only — see
  * `data-trust-score-adapter.ts`'s own header for the DB-touching-outer-layer
- * scope note), and the Evidence Adapter (adapter #3). Nothing in this module
- * opens a database, imports Next.js, or executes a legacy engine.
+ * scope note), the Evidence Adapter (adapter #3), and the Recommendation
+ * Adapter (adapter #4). Nothing in this module opens a database, imports
+ * Next.js, or executes a legacy engine.
  */
 
 export type {
@@ -53,3 +54,20 @@ export {
   adaptLegacyEvidence,
   adaptLegacyEvidenceList,
 } from "./evidence-adapter";
+
+export type {
+  LegacyRecommendationType,
+  LegacyRecommendationItem,
+  RecommendationAdapterContext,
+  RecommendationAdaptationIssue,
+  RecommendationAdaptationIssueCode,
+  RecommendationSourceReference,
+  RecommendationAdaptationResult,
+} from "./recommendation-adapter";
+
+export {
+  LEGACY_RECOMMENDATION_TYPES,
+  RECOMMENDATION_ADAPTER_UNMAPPED_FIELDS,
+  adaptLegacyRecommendation,
+  adaptLegacyRecommendationList,
+} from "./recommendation-adapter";

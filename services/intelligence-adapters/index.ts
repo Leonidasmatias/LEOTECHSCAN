@@ -71,3 +71,30 @@ export {
   adaptLegacyRecommendation,
   adaptLegacyRecommendationList,
 } from "./recommendation-adapter";
+
+export type {
+  SnapshotSourceKind,
+  SnapshotSourceField,
+  SnapshotProviderInput,
+  SnapshotDerivation,
+} from "./snapshot-provider";
+
+export { deriveSiteSnapshot } from "./snapshot-provider";
+
+export type { DataTrustEnvelopeIssue, DataTrustCanonicalEnvelope } from "./api-projection-adapter";
+
+export { projectCanonicalDataTrustResponse } from "./api-projection-adapter";
+
+/**
+ * `services/intelligence-adapters/data-trust-read-adapter.ts` (Increment 7's DB-touching
+ * outer adapter) is deliberately NOT re-exported here. Every existing pure-adapter test
+ * in this repository imports from this barrel
+ * (`@/services/intelligence-adapters`) expecting zero I/O; re-exporting the outer
+ * adapter here would make this barrel transitively import `node:sqlite`
+ * (`data-trust-read-adapter.ts` -> `services/data-trust-engine.ts` ->
+ * `services/site-service.ts` -> `lib/db.ts`), breaking every one of those tests'
+ * Vitest collection. Import it directly from
+ * `@/services/intelligence-adapters/data-trust-read-adapter` instead -- exactly what
+ * `services/intelligence-runtime/intelligence-orchestrator-instance.ts` (its only
+ * intended caller) does.
+ */

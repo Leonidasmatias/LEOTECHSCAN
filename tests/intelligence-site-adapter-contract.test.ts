@@ -9,7 +9,16 @@ import fs from "node:fs";
 import path from "node:path";
 
 const ADAPTER_DIR = path.resolve(__dirname, "..", "services", "intelligence-adapters");
-const ADAPTER_FILES = fs.readdirSync(ADAPTER_DIR).filter((f) => f.endsWith(".ts"));
+// data-trust-read-adapter.ts (Increment 7) is a deliberate, documented exception to
+// "every file in this directory is pure": it is the DB-touching outer adapter
+// `docs/genesis-phase-2/23_INCREMENT_6_5_ARCHITECTURAL_DECISIONS.md` Decision C /
+// ADR-018 formally scoped into this directory (per `08_ADAPTER_STRATEGY.md`'s own
+// category 2 "DB-fetching half" carve-out). Its own dedicated contract test
+// (tests/intelligence-increment-7-contract.test.ts) covers its specific boundaries
+// instead. Excluding it here is narrower than weakening any check -- every other
+// file in this directory is still swept by every assertion below, unchanged.
+const ADAPTER_EXCLUSIONS = ["data-trust-read-adapter.ts"];
+const ADAPTER_FILES = fs.readdirSync(ADAPTER_DIR).filter((f) => f.endsWith(".ts") && !ADAPTER_EXCLUSIONS.includes(f));
 const INTELLIGENCE_DIR = path.resolve(__dirname, "..", "services", "intelligence");
 
 // Strips block and line comments before checking for real imports/calls, so a

@@ -17,10 +17,18 @@ function stripComments(source: string): string {
   return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
 }
 
+// data-trust-read-adapter.ts (Increment 7) is a deliberate, documented exception to
+// "every file in this directory is pure": it is the DB-touching outer adapter
+// `docs/genesis-phase-2/23_INCREMENT_6_5_ARCHITECTURAL_DECISIONS.md` Decision C /
+// ADR-018 formally scoped into this directory. Its own dedicated contract test
+// (tests/intelligence-increment-7-contract.test.ts) covers its specific boundaries
+// instead -- every other file here is still swept by every check below, unchanged.
+const ADAPTER_EXCLUSIONS = ["data-trust-read-adapter.ts"];
+
 function readAdapterFiles(): Array<{ file: string; source: string }> {
   return fs
     .readdirSync(ADAPTER_DIR)
-    .filter((f) => f.endsWith(".ts"))
+    .filter((f) => f.endsWith(".ts") && !ADAPTER_EXCLUSIONS.includes(f))
     .map((file) => ({ file, source: stripComments(fs.readFileSync(path.join(ADAPTER_DIR, file), "utf8")) }));
 }
 

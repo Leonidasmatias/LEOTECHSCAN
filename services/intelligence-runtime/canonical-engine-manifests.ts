@@ -27,11 +27,13 @@ const DATA_TRUST_MANIFEST: EngineManifest = {
   id: "data-trust",
   name: "Data Trust Score Engine",
   description:
-    "Canonical Data Trust Score engine (02_CANONICAL_DOMAIN_MODEL.md). Not yet implemented " +
+    "Canonical Data Trust Score engine (02_CANONICAL_DOMAIN_MODEL.md). Not yet operational " +
     "at the canonical layer: a legacy rule-based implementation exists at " +
-    "services/data-trust-engine.ts (0-100 trustScore, persisted to site_trust_scores), but " +
-    "no Data Trust Score Adapter (08_ADAPTER_STRATEGY.md adapter #2, Increment 4) has been " +
-    "built yet, so this declaration is 'planned', not 'active'.",
+    "services/data-trust-engine.ts (0-100 trustScore, persisted to site_trust_scores), and a " +
+    "pure Data Trust Score Adapter now exists (08_ADAPTER_STRATEGY.md adapter #2, Increment 4, " +
+    "services/intelligence-adapters/data-trust-score-adapter.ts) -- but it is not wired into " +
+    "this registry, any route, or an Orchestrator, so this declaration remains 'planned', not " +
+    "'active'.",
   status: "planned",
   version: {
     engineVersion: v0_1_0,

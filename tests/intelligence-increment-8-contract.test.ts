@@ -50,9 +50,9 @@ describe("Increment 8: exact production file inventory exists", () => {
     }
   });
 
-  it("no aggregate route exists (/api/intelligence/site)", () => {
+  it("did not itself introduce the aggregate route (/api/intelligence/site) -- Increment 9 is the approved increment that does, and it now exists", () => {
     const aggregateDir = path.join(ROOT, "app", "api", "intelligence", "site");
-    expect(fs.existsSync(aggregateDir)).toBe(false);
+    expect(fs.existsSync(aggregateDir)).toBe(true);
   });
 });
 

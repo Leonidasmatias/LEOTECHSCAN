@@ -114,3 +114,10 @@ export { projectCanonicalEvidenceResponse } from "./evidence-projection-adapter"
  * `services/intelligence-runtime/intelligence-evidence-orchestrator-instance.ts`
  * (its only intended caller) does.
  */
+
+export type {
+  SiteIntelligenceCapabilityProjection,
+  SiteIntelligenceAggregateEnvelope,
+} from "./site-intelligence-projection-adapter";
+
+export { projectSiteIntelligenceResponse } from "./site-intelligence-projection-adapter";

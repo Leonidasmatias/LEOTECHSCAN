@@ -705,9 +705,22 @@ legacy-bridging detail with no meaning outside that one file.
 - **Purpose:** DB-touching outer adapter reading only the site row
   (frozen plan Section 23).
 - **Allowed imports:** `DatabaseSync` (type-only, `node:sqlite`),
-  `SiteRow` (type-only, `@/lib/types`), `getWritableDb` (value, `@/lib/db`).
+  `SiteRow` (type-only, `@/lib/types`), `getWritableDb` (value, `@/lib/db`),
+  `siteRow` (value, `@/services/site-service` — change control amendment,
+  approved: this file uses the canonical `siteRow(raw)` mapping on its own
+  selected row rather than independently re-deriving `SiteRow`'s
+  established fallback-chain logic, preserving a single source of truth,
+  preventing duplicate/diverging row-shaping implementations, and keeping
+  satellite site reads shaped identically to every other existing
+  `SiteRow` consumer. No other export of `@/services/site-service` is
+  authorized, and `@/api/site-query`'s `SITE_SELECT` remains
+  unauthorized — a plain, locally-written `SELECT * FROM sites WHERE id = ?`
+  is sufficient, since `siteRow()` reads named properties off whatever row
+  it receives regardless of column ordering).
 - **Forbidden imports:** `copernicus-engine`, `copernicus-truth`, any
-  other `*-engine` module, `next/server`, `next`, `@/app/api`.
+  other `*-engine` module, `next/server`, `next`, `@/app/api`,
+  `SITE_SELECT`/`@/api/site-query`, any export of `@/services/site-service`
+  other than `siteRow`.
 - **Exports:** a function, e.g. `fetchSatelliteSiteRow(siteId: number, db?: DatabaseSync): SiteRow | null`,
   mirroring `data-trust-read-adapter.ts`'s own `fetchLegacyDataTrustForSite`
   shape (default parameter `db = getWritableDb()`).
@@ -1119,8 +1132,10 @@ imports `satellite-observation-adapter.ts` (Wave 2) nor either `io/` file
 
 ```
 io/satellite-site-read-adapter.ts
-        -> @/lib/db      (value import: getWritableDb)
-        -> @/lib/types   (type-only import: SiteRow)
+        -> @/lib/db              (value import: getWritableDb)
+        -> @/lib/types           (type-only import: SiteRow)
+        -> @/services/site-service (value import: siteRow — change
+                                     control amendment, Section 9.4)
 ```
 
 **Composition (Wave 5) — runtime data flow, not import edges:**

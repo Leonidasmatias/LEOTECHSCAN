@@ -603,8 +603,12 @@ wrapping `copernicusForSite(db, siteId, radiusKm, lookbackDaysFromWindow(request
 (Section 3.2's trap) — and reshaping every field per Section 10.2's rules
 before returning. `providerCode: "copernicus-legacy-simulated"` — the
 code itself discloses simulated status, never implying a real provider by
-omission. This is the **only** file in the entire increment permitted to
-import `copernicus-engine.ts`/`copernicus-truth.ts`.
+omission. This is the authorized Increment 10 provider permitted to
+import `copernicus-engine.ts`/`copernicus-truth.ts`;
+`services/intelligence-adapters/evidence-adapter.ts` is a grandfathered
+pre-existing exception limited to its existing `copernicus-truth.ts`
+import only (not `copernicus-engine.ts`); no third file may import
+either module.
 
 **Deterministic fake provider for tests**:
 `services/intelligence-adapters/satellite-fake-provider.ts` — a pure,
@@ -1226,7 +1230,7 @@ remaining hedged or superseded paths)
 | `services/intelligence-runtime/satellite-intelligence-provider-port.ts` | Pure port interface and its request/outcome types (Section 10.1/10.2) — lives in `intelligence-runtime/`, not `intelligence-adapters/`, per Section 10.1's own binding placement decision; **this is the only correct path for this file, superseding any earlier reference to `services/intelligence-adapters/satellite-provider-port.ts`** |
 | `services/intelligence-adapters/satellite-fake-provider.ts` | Pure, deterministic in-memory `SatelliteProviderPort` implementation for unit tests (Section 10.3); resolves via `Promise.resolve(...)` |
 | `services/intelligence-adapters/io/satellite-site-read-adapter.ts` | DB-touching outer adapter. Reads the site/database record (`SiteRow`) only, `persist=false` where applicable. Performs only outer I/O access. **Does not call `copernicus-engine.ts`/`copernicus-truth.ts` and never imports them.** |
-| `services/intelligence-adapters/io/legacy-copernicus-provider.ts` | DB-touching. Implements `SatelliteProviderPort` (Section 10.3). **The only file in this entire increment permitted to import `copernicus-engine.ts`/`copernicus-truth.ts`.** Calls `copernicusForSite(db, siteId, radiusKm, lookbackDaysFromWindow(request.temporalWindow), false)` — the literal `false`, never omitted, never `satelliteValidationForSite` (Section 3.2's trap). Reshapes native legacy scene/validation output into the provider-neutral `SatelliteProviderScene`/`SatelliteProviderQualitySummary` types (Section 10.2), including the 0–100→0–1 score normalization. Returns the mandatory `SatelliteTruthMetadata` (Section 10.3/F-1), derived from `copernicusTruthMetadata()`, on every outcome. |
+| `services/intelligence-adapters/io/legacy-copernicus-provider.ts` | DB-touching. Implements `SatelliteProviderPort` (Section 10.3). **The authorized Increment 10 provider permitted to import `copernicus-engine.ts`/`copernicus-truth.ts`; `services/intelligence-adapters/evidence-adapter.ts` is a grandfathered pre-existing exception limited to its existing `copernicus-truth.ts` import only (not `copernicus-engine.ts`); no third file may import either module.** Calls `copernicusForSite(db, siteId, radiusKm, lookbackDaysFromWindow(request.temporalWindow), false)` — the literal `false`, never omitted, never `satelliteValidationForSite` (Section 3.2's trap). Reshapes native legacy scene/validation output into the provider-neutral `SatelliteProviderScene`/`SatelliteProviderQualitySummary` types (Section 10.2), including the 0–100→0–1 score normalization. Returns the mandatory `SatelliteTruthMetadata` (Section 10.3/F-1), derived from `copernicusTruthMetadata()`, on every outcome. |
 | `services/intelligence-adapters/satellite-observation-adapter.ts` | Pure: `SatelliteProviderScene` → `SatelliteObservation`, deterministic quality/freshness classification (Section 12) |
 | `services/intelligence-adapters/satellite-evidence-checksum.ts` | Pure: content-fingerprint checksum for one observation, mirroring Increment 8's algorithm |
 | `services/intelligence-adapters/satellite-evidence-adapter.ts` | Pure: one `SatelliteObservation` → one canonical `Evidence`, including the exact `EvidenceId` formula (Section 10.4/F-4) |
@@ -1305,7 +1309,7 @@ own convention.
 | **Simulated data cannot be exposed as `provider_sourced`** | the legacy provider adapter has no code path that ever sets `dataReality: "provider_sourced"` (F-1) |
 | **Legacy and canonical truth metadata remain consistent** | `truthMetadata.realSatelliteEvidence === copernicusTruthMetadata().isRealSatelliteEvidence` for every response the legacy provider produces (F-1) |
 | No Copernicus/Sentinel-shaped type crosses the port | source-inspection test confirming `satellite-intelligence-provider-port.ts` contains no `orbitDirection`/`polarization`/`relativeOrbit`/`CopernicusScene` reference (F-2) |
-| Provider adapter is the only file importing the legacy engine | source-inspection sweep confirming `copernicus-engine.ts`/`copernicus-truth.ts` are imported only from `legacy-copernicus-provider.ts` (F-2) |
+| Provider adapter is the only Increment 10 file importing the legacy engine; one pre-existing exception is grandfathered | source-inspection sweep confirming `copernicus-engine.ts`/`copernicus-truth.ts` are imported only from `services/intelligence-adapters/io/legacy-copernicus-provider.ts` (the only Increment 10 provider file authorized to import either module) and `services/intelligence-adapters/evidence-adapter.ts` (a grandfathered pre-existing exception, limited to its existing `copernicus-truth` import only — not authorized for `copernicus-engine`); no additional file may import either module (F-2) |
 | Async port contract | `fetch()` returns a genuine `Promise`; the fake provider resolves via `Promise.resolve(...)`, never a pending timer (F-3) |
 | No `Promise.all` present | source-inspection assertion — Increment 10 has exactly one provider call per request (F-3) |
 | Orchestrator entry point is async | `getCanonicalSatelliteIntelligenceForSite` returns a `Promise`, confirmed behaviorally, not just by type (F-3) |

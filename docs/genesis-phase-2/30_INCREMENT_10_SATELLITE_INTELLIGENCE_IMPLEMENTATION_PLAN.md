@@ -211,9 +211,14 @@ execution plan in the real, current repository state:
 
 ## 6. Legacy Copernicus constraints (binding on implementation)
 
-1. Only `services/intelligence-adapters/io/legacy-copernicus-provider.ts`
-   may import `services/copernicus-engine.ts` or
-   `services/copernicus-truth.ts`. No other new file may.
+1. Exactly two files across `services/intelligence-adapters/**` may
+   import `services/copernicus-engine.ts` or
+   `services/copernicus-truth.ts`: `services/intelligence-adapters/io/legacy-copernicus-provider.ts`
+   (the authorized Increment 10 provider, both modules) and
+   `services/intelligence-adapters/evidence-adapter.ts` (a grandfathered
+   pre-existing exception, limited to its existing `copernicus-truth.ts`
+   import only — not `copernicus-engine.ts`). No other file, new or
+   pre-existing, may import either module.
 2. Every call to `copernicusForSite` must pass a literal `false` as the
    fifth argument — never omitted (the legacy default is `false` already,
    but the frozen plan requires the literal for auditability, matching
@@ -384,8 +389,12 @@ expand beyond what is listed here without stopping and reporting (Section
 - **Responsibilities:** `satellite-site-read-adapter.ts` reads only the
   `SiteRow` (via `getWritableDb()`, mirroring the two existing `io/`
   adapters), never imports either legacy Copernicus module. `legacy-copernicus-provider.ts`
-  implements `SatelliteProviderPort`, is the **only** file permitted to
-  import `copernicus-engine.ts`/`copernicus-truth.ts`, calls
+  implements `SatelliteProviderPort` and is the authorized Increment 10
+  provider permitted to import `copernicus-engine.ts`/`copernicus-truth.ts`
+  (`services/intelligence-adapters/evidence-adapter.ts` is a
+  grandfathered pre-existing exception limited to its existing
+  `copernicus-truth.ts` import only; no third file may import either
+  module — Section 10.3), calls
   `copernicusForSite(db, siteId, radiusKm, lookbackDaysFromWindow(request.temporalWindow), false)`
   with the literal `false`, reshapes the legacy `CopernicusScene[]`/validation
   score into `SatelliteProviderScene[]`/`SatelliteProviderQualitySummary`
@@ -406,7 +415,13 @@ expand beyond what is listed here without stopping and reporting (Section
 - **Commands:** `npx tsc --noEmit`; `npx vitest run tests/intelligence-satellite-site-read-adapter-contract.test.ts tests/intelligence-satellite-legacy-copernicus-provider-contract.test.ts`.
 - **Pass/fail gate:** both contract test files pass; a repository-wide
   grep (`grep -rn "copernicus-engine\|copernicus-truth" services/intelligence-adapters/`)
-  matches only inside `legacy-copernicus-provider.ts`.
+  matches only inside exactly two authorized files:
+  `services/intelligence-adapters/evidence-adapter.ts` (a grandfathered
+  pre-existing exception, Increment 5/8, limited to its existing
+  `copernicus-truth` import only) and
+  `services/intelligence-adapters/io/legacy-copernicus-provider.ts` (the
+  authorized Increment 10 provider). The gate still scans all of
+  `services/intelligence-adapters/**` and fails if any third file matches.
 - **Rollback boundary:** delete both `io/` files; Waves 1/2 are
   unaffected (neither is imported by them yet).
 
@@ -744,8 +759,12 @@ legacy-bridging detail with no meaning outside that one file.
 
 ### 9.5 `services/intelligence-adapters/io/legacy-copernicus-provider.ts`
 
-- **Purpose:** DB-touching. The only file in this increment permitted to
-  import `copernicus-engine.ts`/`copernicus-truth.ts`; implements
+- **Purpose:** DB-touching. The authorized Increment 10 provider
+  permitted to import `copernicus-engine.ts`/`copernicus-truth.ts`
+  (`services/intelligence-adapters/evidence-adapter.ts` is a
+  grandfathered pre-existing exception limited to its existing
+  `copernicus-truth.ts` import only — not `copernicus-engine.ts`; no
+  third file may import either module — Section 10.3); implements
   `SatelliteProviderPort` (frozen plan Section 23).
 - **Allowed imports:** `DatabaseSync` (type-only, `node:sqlite`),
   `getWritableDb` (value, `@/lib/db`), `copernicusForSite` (value,
@@ -1206,11 +1225,18 @@ binding literal-substring rule).
 
 ### 10.3 Modules allowed to import legacy Copernicus code
 
-Exactly one: `services/intelligence-adapters/io/legacy-copernicus-provider.ts`.
-No other file among the 13 may import `services/copernicus-engine.ts` or
-`services/copernicus-truth.ts`, confirmed by Wave 3's gate
+Exactly two, across all of `services/intelligence-adapters/**`:
+`services/intelligence-adapters/io/legacy-copernicus-provider.ts` (the
+authorized Increment 10 provider, importing both `copernicus-engine.ts`
+and `copernicus-truth.ts` as defined by Wave 3), and
+`services/intelligence-adapters/evidence-adapter.ts` (a grandfathered
+pre-existing exception, Increment 5/8, limited to its existing
+`copernicus-truth.ts` import only — the exception does not authorize
+`evidence-adapter.ts` to import `copernicus-engine.ts`). No other file
+among the 13 (nor any other file in `services/intelligence-adapters/**`)
+may import either module, confirmed by Wave 3's gate
 (`grep -rn "copernicus-engine\|copernicus-truth" services/intelligence-adapters/`
-matching only that one file) and re-confirmed by Wave 9's
+matching only these two named files) and re-confirmed by Wave 9's
 `tests/intelligence-increment-10-contract.test.ts`.
 
 ### 10.4 Modules allowed to touch the database
@@ -1237,14 +1263,18 @@ Exactly one: `app/api/intelligence/satellite/site/handler.ts`
 `console.warn` — matching Increment 9's own precedent where all
 diagnostic logging lives in the handler, not the orchestrator core.
 
-### 10.7 Confirmed: single legacy-import chokepoint
+### 10.7 Confirmed: two-file legacy-import chokepoint
 
 This graph structurally guarantees the frozen plan's binding requirement
 (Section 6 of this document, restated here for the dependency-graph
 context): a repository-wide search for any import of
-`copernicus-engine`/`copernicus-truth` outside
-`io/legacy-copernicus-provider.ts` must return zero matches among the 13
-approved files, for the entire lifetime of this increment.
+`copernicus-engine`/`copernicus-truth` within
+`services/intelligence-adapters/**` must return matches in exactly two
+authorized files — one active Increment 10 provider
+(`io/legacy-copernicus-provider.ts`) and one grandfathered legacy
+exception (`evidence-adapter.ts`, limited to its existing
+`copernicus-truth` import) — and zero matches in every other file, for
+the entire lifetime of this increment.
 
 ## 11. Test execution matrix
 
@@ -1428,9 +1458,13 @@ holds simultaneously:
    Batch 3 specification exactly (allowed/forbidden imports, exports,
    sync/async behavior, side-effect policy).
 2. All 11 approved test files (Section 7) exist and pass.
-3. Only `services/intelligence-adapters/io/legacy-copernicus-provider.ts`
-   imports `copernicus-engine.ts`/`copernicus-truth.ts` (Section 10.3,
-   confirmed by repository-wide grep returning exactly one match).
+3. `copernicus-engine.ts`/`copernicus-truth.ts` are imported only in the
+   two authorized files (Section 10.3): the grep returns matches only in
+   `services/intelligence-adapters/io/legacy-copernicus-provider.ts` and
+   `services/intelligence-adapters/evidence-adapter.ts` (grandfathered,
+   `copernicus-truth` only); no third matching file exists;
+   `evidence-adapter.ts` remains limited to its pre-existing
+   `copernicus-truth` import and does not import `copernicus-engine.ts`.
 4. Only the two `io/` files touch the database directly (Section 10.4).
 5. `satellite-projection-adapter.ts` is synchronous; the provider port,
    orchestrator, and orchestrator-instance are asynchronous (Section

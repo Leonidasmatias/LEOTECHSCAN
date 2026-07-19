@@ -193,9 +193,14 @@ unaware:
    the provider port's location in `intelligence-runtime/`, and every
    other path are not implementation-time preferences.
 7. `persist=false` is a literal, never a variable, at every
-   `copernicusForSite` call site. Only
-   `services/intelligence-adapters/io/legacy-copernicus-provider.ts` may
-   import `services/copernicus-engine.ts`/`services/copernicus-truth.ts`.
+   `copernicusForSite` call site. Exactly two files may import
+   `services/copernicus-engine.ts`/`services/copernicus-truth.ts`:
+   `services/intelligence-adapters/io/legacy-copernicus-provider.ts`
+   (the authorized Increment 10 provider, both modules) and
+   `services/intelligence-adapters/evidence-adapter.ts` (a grandfathered
+   pre-existing exception, limited to its existing `copernicus-truth.ts`
+   import only — not `copernicus-engine.ts`). No other file may import
+   either module.
 8. Increment 9 (Data Trust, Evidence Center, Site Intelligence
    Aggregator, and their routes/handlers/orchestrators) is frozen at
    `b49457d` and must remain byte-identical throughout Increment 10.
@@ -339,11 +344,18 @@ Definition of Done above be satisfied on the way there.
   imports" list (implementation plan Section 9) and in the dependency
   graph (Section 10). An import not listed in both is forbidden, full
   stop — not "probably fine."
-- Only `services/intelligence-adapters/io/legacy-copernicus-provider.ts`
-  may import `services/copernicus-engine.ts` or
-  `services/copernicus-truth.ts`. Verified, every Wave from Wave 3
+- Only two files across `services/intelligence-adapters/**` may import
+  `services/copernicus-engine.ts` or `services/copernicus-truth.ts`:
+  `services/intelligence-adapters/io/legacy-copernicus-provider.ts` (the
+  authorized Increment 10 provider, importing both modules) and
+  `services/intelligence-adapters/evidence-adapter.ts` (a grandfathered
+  pre-existing exception limited to its existing `copernicus-truth.ts`
+  dependency only — it does not authorize `copernicus-engine.ts`, any
+  new dependency, or broader use, and does not alter Increment 10's
+  provider chokepoint responsibility). Verified, every Wave from Wave 3
   onward, via `grep -rn "copernicus-engine\|copernicus-truth"
-  services/intelligence-adapters/` returning exactly one matching file.
+  services/intelligence-adapters/` returning matches only in these two
+  named files, with zero matches elsewhere.
 - Only `io/satellite-site-read-adapter.ts` and
   `io/legacy-copernicus-provider.ts` touch the database directly;
   `satellite-intelligence-orchestrator-instance.ts` touches it only
